@@ -23,10 +23,10 @@ NexOrder is composed of multiple independent microservices, each owning its doma
 
 | Service | Responsibility | Repository |
 |------|---------------|-----------|
-| **User Service** | User management and user-related data | https://github.com/NexOrderApp/NexOrder.UserService |
-| **Product Service** | Product catalog and product lifecycle events | https://github.com/NexOrderApp/NexOrder.ProductService |
-| **Order Service** | Order creation and order processing | https://github.com/NexOrderApp/NexOrder.OrderService |
-| **Auth Service** | Token-based authentication and JWT issuance | https://github.com/NexOrderApp/NexOrder.AuthService |
+| **User Service** | User management and user-related data | https://github.com/mitanshu-patel/NexOrder.UserService |
+| **Product Service** | Product catalog and product lifecycle events | https://github.com/mitanshu-patel/NexOrder.ProductService |
+| **Order Service** | Order creation and order processing | https://github.com/mitanshu-patel/NexOrder.OrderService |
+| **Auth Service** | Token-based authentication and JWT issuance | https://github.com/mitanshu-patel/NexOrder.AuthService |
 
 ---
 
