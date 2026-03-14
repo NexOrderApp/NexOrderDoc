@@ -1,0 +1,127 @@
+networks:
+  nexorder-network:
+
+services:
+  nexorderuserssql:
+    container_name: nexorderuserssql
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    env_file:
+      - user-local.env
+    ports:
+      - 1432:1433
+    volumes:
+      - nexorderuserssql_data:/var/opt/mssql
+    networks:
+      - nexorder-network
+
+  nexorderproductssql:
+    container_name: nexorderproductssql
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    env_file:
+        - product-local.env
+    ports:
+        - 1434:1433
+    volumes:
+        - nexorderproductssql_data:/var/opt/mssql
+    networks:
+        - nexorder-network
+
+  nexorderorderssql:
+      container_name: nexorderorderssql
+      image: mcr.microsoft.com/mssql/server:2019-latest
+      env_file:
+        - order-local.env
+      ports:
+        - 1435:1433
+      volumes:
+        - nexorderorderssql_data:/var/opt/mssql
+      networks:
+        - nexorder-network
+  
+  nexorder-authservice:
+    container_name: nexorderauthservice
+    build: 
+      context: NexOrder.AuthService
+      dockerfile: NexOrder.AuthService/Dockerfile
+    ports:
+      - 7023:80
+    env_file:
+      # Following environment variables are required for the AuthService to work properly. Make sure to set them in the user-local.env file.
+      #  AuthSecret=<secret_key_for_jwt_token_generation>
+      #  ExpirationMinutes=<token_expiration_time_in_minutes>
+      #  Audience=<audience_for_jwt_token>
+      #  Issuer=<issuer_for_jwt_token>
+      - auth-local.env
+    networks:
+      - nexorder-network
+
+  nexorder-userservice:
+    container_name: nexorderuserservice
+    build: 
+      context: NexOrder.UserService
+      dockerfile: NexOrder.UserService/Dockerfile
+    ports:
+      - 7024:80
+    env_file:
+      # Following environment variables are required for the UserService to work properly. Make sure to set them in the user-local.env file.
+        # DB_SERVER_NAME=nexorderuserssql
+        # ACCEPT_EULA=Y
+        # SA_PASSWORD=<strong_password_for_sql_server>
+        # DB_NAME=<database_name>
+        # DB_PASSWORD=<strong_password_for_sql_server>
+        # ConnectionStrings__ServiceBusConnectionString=<service_bus_connection_string>
+        # APIM_BASE_URL=<url_for_auth_service_api>
+        # RunMigration=true
+      - user-local.env
+    networks:
+      - nexorder-network
+    depends_on:
+      - nexorderuserssql
+  nexorder-productservice:
+    container_name: nexorderproductservice
+    build: 
+      context: NexOrder.ProductService
+      dockerfile: NexOrder.ProductService/Dockerfile
+    ports:
+      - 7025:80
+    env_file:
+      # Following environment variables are required for the ProductService to work properly. Make sure to set them in the product-local.env file.
+      # DB_SERVER_NAME=nexorderproductssql
+      # ACCEPT_EULA=Y
+      # SA_PASSWORD=<strong_password_for_sql_server>
+      # DB_NAME=<database_name>
+      # DB_PASSWORD=<strong_password_for_sql_server>
+      # ConnectionStrings__ServiceBusConnectionString=<service_bus_connection_string>
+      # RunMigration=true
+      - product-local.env
+    networks:
+      - nexorder-network
+    depends_on:
+      - nexorderproductssql
+
+  nexorder-orderservice:
+    container_name: nexorderorderservice
+    build: 
+      context: NexOrder.OrderService
+      dockerfile: NexOrder.OrderService/Dockerfile
+    ports:
+      - 7026:80
+    env_file:
+      # Following environment variables are required for the OrderService to work properly. Make sure to set them in the order-local.env file.
+        # DB_SERVER_NAME=nexorderorderssql
+        # ACCEPT_EULA=Y
+        # SA_PASSWORD=<strong_password_for_sql_server>
+        # DB_NAME=<database_name>
+        # DB_PASSWORD=<strong_password_for_sql_server>
+        # ConnectionStrings__ServiceBusConnectionString=<service_bus_connection_string>
+        # RunMigration=true
+      - order-local.env
+    networks:
+      - nexorder-network
+    depends_on:
+      - nexorderorderssql
+
+volumes:
+  nexorderuserssql_data:
+  nexorderproductssql_data:
+  nexorderorderssql_data:
