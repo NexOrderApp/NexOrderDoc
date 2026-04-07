@@ -28,10 +28,13 @@ independently developed, deployed, and scaled.
 
 ### Core Services
 
--   ProductService -- Manages product catalog
--   OrderService -- Handles order processing
--   AuthService -- Handles authentication (JWT-based)
--   API Gateway -- Central entry point for all client requests
+
+| Service | Responsibility | Repository |
+|------|---------------|-----------|
+| **User Service** | User management and user-related data | https://github.com/mitanshu-patel/NexOrder.UserService |
+| **Product Service** | Product catalog and product lifecycle events | https://github.com/mitanshu-patel/NexOrder.ProductService |
+| **Order Service** | Order creation and order processing | https://github.com/mitanshu-patel/NexOrder.OrderService |
+| **Auth Service** | Token-based authentication and JWT issuance | https://github.com/mitanshu-patel/NexOrder.AuthService |
 
 ------------------------------------------------------------------------
 
