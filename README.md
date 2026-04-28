@@ -12,7 +12,6 @@ containerization, cloud deployment, and distributed system design.
 -   Microservices-based architecture
 -   RESTful APIs using .NET
 -   API Gateway with JWT authentication
--   Role-based access control (RBAC)
 -   Docker containerization
 -   Unified Docker Compose setup for local orchestration
 -   CI/CD pipeline using GitHub Actions
@@ -35,6 +34,7 @@ independently developed, deployed, and scaled.
 | **Product Service** | Product catalog and product lifecycle events | https://github.com/mitanshu-patel/NexOrder.ProductService |
 | **Order Service** | Order creation and order processing | https://github.com/mitanshu-patel/NexOrder.OrderService |
 | **Auth Service** | Token-based authentication and JWT issuance | https://github.com/mitanshu-patel/NexOrder.AuthService |
+ **Framework** | Framework C# Library project which has common implementations used in microservices as Nuget package | https://github.com/mitanshu-patel/NexOrder.Framework |
 
 ------------------------------------------------------------------------
 
