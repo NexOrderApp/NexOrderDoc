@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexOrder Platform | Technical Architecture & Implementation Reference</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    /* Lazy Loading Section Animation Styles */
+    .lazy-section {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+      content-visibility: auto;
+      contain-intrinsic-size: 1px 400px;
+    }
+    .lazy-section.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 500: '#3b82f6', 600: '#2563eb', 900: '#1e3a8a' }
+          }
+        }
+      }
+    };
+
+    // Native Intersection Observer for Lazy Loading Sections
+    document.addEventListener("DOMContentLoaded", () => {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.05 });
+
+      document.querySelectorAll(".lazy-section").forEach(section => observer.observe(section));
+    });
+  </script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-blue-500 selection:text-white">
+
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="h-9 w-9 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white shadow-lg shadow-blue-500/30">N</div>
+        <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">NexOrder Architecture Docs</span>
+      </div>
+      <nav class="hidden lg:flex items-center space-x-5 text-xs font-medium text-slate-300">
+        <a href="#overview" class="hover:text-blue-400 transition">Overview</a>
+        <a href="#topology" class="hover:text-blue-400 transition">Topology</a>
+        <a href="#product-service" class="hover:text-blue-400 transition">ProductService</a>
+        <a href="#order-service" class="hover:text-purple-400 transition">OrderService</a>
+        <a href="#user-service" class="hover:text-emerald-400 transition">UserService</a>
+        <a href="#auth-service" class="hover:text-amber-400 transition">AuthService</a>
+        <a href="#framework" class="hover:text-cyan-400 transition">Framework</a>
+        <a href="#ai-semantic" class="hover:text-purple-400 transition">AI Integration</a>
+        <a href="#caching-security" class="hover:text-indigo-400 transition">Azure Infrastructure</a>
+      </nav>
+      <a href="https://github.com/mitanshu-patel" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-semibold border border-slate-700 transition flex items-center gap-2">
+        <i class="fab fa-github text-base"></i> GitHub Repos
+      </a>
+    </div>
+  </header>
+
+  <section id="overview" class="relative pt-20 pb-16 px-6 max-w-7xl mx-auto text-center lazy-section">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold uppercase tracking-wider mb-6">
+      <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> Production-Grade .NET Microservices Architecture
+    </div>
+    <h1 class="text-4xl md:text-6xl font-black tracking-tight max-w-5xl mx-auto leading-tight">
+      NexOrder Cloud Backend & <span class="bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">Microservice Architecture</span>
+    </h1>
+    <p class="mt-6 text-lg text-slate-400 max-w-4xl mx-auto leading-relaxed">
+      A comprehensive technical blueprint for the NexOrder backend system. Built with decoupled .NET microservices, Semantic Kernel integration in `ProductService`, Redis (`IDistributedCache`) and FusionCache multi-level caching, Azure Key Vault secret management, Azure Cloud infrastructure services, and a shared framework library.
+    </p>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto mt-12 text-left">
+      <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl">
+        <div class="text-2xl font-bold text-blue-400">4 Microservices</div>
+        <div class="text-xs text-slate-400 mt-1">Autonomous Domain Boundaries</div>
+      </div>
+      <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl">
+        <div class="text-2xl font-bold text-purple-400">Semantic Kernel</div>
+        <div class="text-xs text-slate-400 mt-1">AI Logic Execution in ProductService</div>
+      </div>
+      <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl">
+        <div class="text-2xl font-bold text-emerald-400">Azure Services</div>
+        <div class="text-xs text-slate-400 mt-1">Key Vault, SQL, Redis, App Service</div>
+      </div>
+      <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl">
+        <div class="text-2xl font-bold text-amber-400">Azure Key Vault</div>
+        <div class="text-xs text-slate-400 mt-1">Dynamic Configuration Ingestion</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="topology" class="max-w-7xl mx-auto px-6 py-12 border-t border-slate-800/60 lazy-section">
+    <h2 class="text-2xl font-bold text-slate-100 mb-2 border-l-4 border-blue-500 pl-4">System Topology & Distributed Architecture</h2>
+    <p class="text-slate-400 text-sm mb-8 pl-5">Structural overview of communication boundaries, domain isolation, secret provider configuration, and caching layers.</p>
+
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 space-y-8">
+      
+      <div class="grid md:grid-cols-5 gap-4 text-center items-center font-mono text-xs">
+        <div class="bg-slate-950 border border-slate-700 p-4 rounded-xl">
+          <i class="fas fa-network-wired text-2xl text-blue-400 mb-2"></i>
+          <div class="font-bold text-white">Client Apps</div>
+          <div class="text-slate-500 mt-1">REST Endpoint Requests</div>
+        </div>
+
+        <div class="bg-slate-950 border border-purple-500/40 p-4 rounded-xl bg-purple-950/10">
+          <i class="fas fa-brain text-2xl text-purple-400 mb-2"></i>
+          <div class="font-bold text-white">Semantic Kernel</div>
+          <div class="text-slate-400 mt-1">AI Processing Pipeline</div>
+        </div>
+
+        <div class="bg-slate-950 border border-amber-500/40 p-4 rounded-xl bg-amber-950/10">
+          <i class="fas fa-key text-2xl text-amber-400 mb-2"></i>
+          <div class="font-bold text-white">Azure Key Vault</div>
+          <div class="text-slate-400 mt-1">Runtime Appsettings Secret Injection</div>
+        </div>
+
+        <div class="bg-slate-950 border border-emerald-500/40 p-4 rounded-xl bg-emerald-950/10">
+          <i class="fas fa-database text-2xl text-emerald-400 mb-2"></i>
+          <div class="font-bold text-white">Azure Cache for Redis</div>
+          <div class="text-slate-400 mt-1">IDistributedCache / FusionCache</div>
+        </div>
+
+        <div class="bg-slate-950 border border-slate-700 p-4 rounded-xl">
+          <i class="fas fa-server text-2xl text-cyan-400 mb-2"></i>
+          <div class="font-bold text-white">Azure SQL Storage</div>
+          <div class="text-slate-500 mt-1">Per-Service DB Boundaries</div>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6 pt-6 border-t border-slate-800 text-sm text-slate-300">
+        <div class="space-y-3">
+          <h3 class="font-bold text-white text-base flex items-center gap-2"><i class="fas fa-brain text-purple-400"></i> Semantic Kernel AI Processing</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            `NexOrder.ProductService` integrates Microsoft's Semantic Kernel framework to orchestrate AI capabilities for processing product metadata and intelligent user queries.
+          </p>
+        </div>
+        <div class="space-y-3">
+          <h3 class="font-bold text-white text-base flex items-center gap-2"><i class="fas fa-shield-alt text-amber-400"></i> Azure Key Vault Secret Management</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Database connection strings and API credentials are safely injected from <strong class="text-slate-200">Azure Key Vault</strong> directly into standard .NET `appsettings` during application startup.
+          </p>
+        </div>
+        <div class="space-y-3">
+          <h3 class="font-bold text-white text-base flex items-center gap-2"><i class="fas fa-bolt text-emerald-400"></i> Multi-Level Caching Engine</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Utilizes <strong class="text-slate-200">Azure Cache for Redis (`IDistributedCache`)</strong> alongside <strong class="text-slate-200">FusionCache</strong> to minimize database workload and deliver sub-millisecond read responses.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-6 py-12 border-t border-slate-800/60 space-y-12">
+    <div class="lazy-section">
+      <h2 class="text-3xl font-bold text-slate-100 border-l-4 border-emerald-500 pl-4">Microservice Specifications & Code-Level Details</h2>
+      <p class="text-slate-400 text-sm mt-2 pl-5">Detailed functional breakdown and technical implementation graphics for each service.</p>
+    </div>
+
+    <div id="product-service" class="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-6 lazy-section">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+        <div class="flex items-center gap-4">
+          <span class="p-4 bg-blue-500/10 text-blue-400 rounded-2xl"><i class="fas fa-box-open text-3xl"></i></span>
+          <div>
+            <h3 class="text-2xl font-bold text-white">NexOrder.ProductService</h3>
+            <p class="text-sm text-slate-400">Product Catalog Management, Semantic Kernel AI & Hybrid Caching Pipeline</p>
+          </div>
+        </div>
+        <a href="https://github.com/mitanshu-patel/NexOrder.ProductService" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-blue-400 px-4 py-2 rounded-xl border border-slate-700 text-sm font-semibold transition self-start md:self-auto flex items-center gap-2">
+          <i class="fab fa-github"></i> Repository
+        </a>
+      </div>
+
+      <div class="bg-slate-950/80 border border-slate-800 p-5 rounded-xl space-y-3">
+        <h4 class="font-bold text-blue-400 text-sm flex items-center gap-2"><i class="fas fa-tasks"></i> Functional Capabilities</h4>
+        <ul class="grid md:grid-cols-2 gap-2 text-xs text-slate-300 list-disc list-inside">
+          <li>Product catalog creation, metadata updates, and inventory tracking.</li>
+          <li>Category hierarchy lookup and entity relationship management.</li>
+          <li>AI-assisted product search prompt processing via Semantic Kernel.</li>
+          <li>Sub-millisecond entity caching for hot product listings.</li>
+        </ul>
+      </div>
+
+      <div class="bg-slate-950 border border-blue-900/30 rounded-xl p-4">
+        <div class="text-xs text-slate-400 font-mono mb-2 flex items-center gap-2">
+          <i class="fas fa-project-diagram text-blue-400"></i> Implementation Flow: ProductService
+        </div>
+        <svg viewBox="0 0 700 120" class="w-full h-auto text-xs font-sans">
+          <rect x="10" y="35" width="130" height="50" rx="8" fill="#1e293b" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="75" y="65" fill="#ffffff" text-anchor="middle" font-size="11">API Request</text>
+          
+          <path d="M 140 60 L 180 60" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+          
+          <rect x="185" y="35" width="150" height="50" rx="8" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="260" y="58" fill="#ffffff" text-anchor="middle" font-size="11" font-weight="bold">Semantic Kernel</text>
+          <text x="260" y="72" fill="#94a3b8" text-anchor="middle" font-size="9">AI Search & Prompts</text>
+          
+          <path d="M 335 60 L 375 60" stroke="#475569" stroke-width="2"/>
+          
+          <rect x="380" y="35" width="140" height="50" rx="8" fill="#1e293b" stroke="#10b981" stroke-width="1.5"/>
+          <text x="450" y="58" fill="#ffffff" text-anchor="middle" font-size="11" font-weight="bold">FusionCache / Redis</text>
+          <text x="450" y="72" fill="#94a3b8" text-anchor="middle" font-size="9">IDistributedCache</text>
+          
+          <path d="M 520 60 L 560 60" stroke="#475569" stroke-width="2"/>
+          
+          <rect x="565" y="35" width="125" height="50" rx="8" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="627" y="58" fill="#ffffff" text-anchor="middle" font-size="11" font-weight="bold">Azure SQL DB</text>
+          <text x="627" y="72" fill="#94a3b8" text-anchor="middle" font-size="9">Product Schema</text>
+        </svg>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6 text-sm">
+        <div class="space-y-3 bg-slate-950/60 p-5 rounded-xl border border-slate-800">
+          <h4 class="font-bold text-white text-base border-b border-slate-800 pb-2 flex items-center gap-2">
+            <i class="fas fa-brain text-purple-400"></i> Semantic Kernel AI
+          </h4>
+          <p class="text-slate-300 text-xs leading-relaxed">
+            Integrates Microsoft Semantic Kernel to parse product attributes and execute AI-assisted catalog queries using custom plugins and structured prompts.
+          </p>
+        </div>
+
+        <div class="space-y-3 bg-slate-950/60 p-5 rounded-xl border border-slate-800">
+          <h4 class="font-bold text-white text-base border-b border-slate-800 pb-2 flex items-center gap-2">
+            <i class="fas fa-bolt text-emerald-400"></i> Distributed Caching
+          </h4>
+          <p class="text-slate-300 text-xs leading-relaxed">
+            Uses <strong class="text-slate-100">IDistributedCache</strong> backed by Azure Cache for Redis and FusionCache to prevent database cache stampedes on hot items.
+          </p>
+        </div>
+
+        <div class="space-y-3 bg-slate-950/60 p-5 rounded-xl border border-slate-800">
+          <h4 class="font-bold text-white text-base border-b border-slate-800 pb-2 flex items-center gap-2">
+            <i class="fas fa-shield-alt text-amber-400"></i> Security & Isolation
+          </h4>
+          <p class="text-slate-300 text-xs leading-relaxed">
+            Fetches storage connection parameters from Azure Key Vault, encapsulating product catalog entities inside an isolated Azure SQL database context.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div id="order-service" class="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-6 lazy-section">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+        <div class="flex items-center gap-4">
+          <span class="p-4 bg-purple-500/10 text-purple-400 rounded-2xl"><i class="fas fa-shopping-cart text-3xl"></i></span>
+          <div>
+            <h3 class="text-2xl font-bold text-white">NexOrder.OrderService</h3>
+            <p class="text-sm text-slate-400">Order Processing Core & Lifecycle State Management Subsystem</p>
+          </div>
+        </div>
+        <a href="https://github.com/mitanshu-patel/NexOrder.OrderService" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-purple-400 px-4 py-2 rounded-xl border border-slate-700 text-sm font-semibold transition self-start md:self-auto flex items-center gap-2">
+          <i class="fab fa-github"></i> Repository
+        </a>
+      </div>
+
+      <div class="bg-slate-950/80 border border-slate-800 p-5 rounded-xl space-y-3">
+        <h4 class="font-bold text-purple-400 text-sm flex items-center gap-2"><i class="fas fa-tasks"></i> Functional Capabilities</h4>
+        <ul class="grid md:grid-cols-2 gap-2 text-xs text-slate-300 list-disc list-inside">
+          <li>Order placement ingestion and line-item total calculations.</li>
+          <li>Order lifecycle state machine handling (Pending, Processing, Completed, Cancelled).</li>
+          <li>Transactional customer purchase history lookups.</li>
+          <li>Checkout request payload validation against product line items.</li>
+        </ul>
+      </div>
+
+      <div class="bg-slate-950 border border-purple-900/30 rounded-xl p-4">
+        <div class="text-xs text-slate-400 font-mono mb-2 flex items-center gap-2">
+          <i class="fas fa-project-diagram text-purple-400"></i> Implementation Flow: OrderService
+        </div>
+        <svg viewBox="0 0 700 120" class="w-full h-auto text-xs font-sans">
+          <rect x="10" y="35" width="130" height="50" rx="8" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="75" y="65" fill="#ffffff" text-anchor="middle" font-size="11">Order Request</text>
+          
+          <path d="M 140 60 L 180 60" stroke="#475569" stroke-width="2"/>
+          
+          <rect x="185" y="35" width="150" height="50" rx="8" fill="#1e293b" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="260" y="58" fill="#ffffff" text-anchor="middle" font-size="11" font-weight="bold">NexOrder.Framework</text>
+          <text x="260" y="72" fill="#94a3b8" text-anchor="middle" font-size="9">Validation & Responses</text>
+          
+          <path d="M 335 60 L 375 60" stroke="#475569" stroke-width="2"/>
+          
+          <rect x="380" y="35" width="140" height="50" rx="8" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="450" y="58" fill="#ffffff" text-anchor="middle" font-size="11" font-weight="bold">State Machine</text>
+          <text x="450" y="72" fill="#94a3b8" text-anchor="middle" font-size="9">Order Lifecycle Engine</text>
+          
+          <path d="M 520 60 L 560 60" stroke="#475569" stroke-width="2"/>
+          
+          <rect x="565" y="35" width="125" height="50" rx="8" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="627" y="58" fill="#ffffff" text-anchor="middle" font-size="11" font-weight="bold">Azure SQL DB</text>
+          <text x="627" y="72" fill="#94a3b8" text-anchor="middle" font-size="9">Order Schema</text>
+        </svg>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8 text-sm">
+        <div class="space-y-4">
+          <h4 class="font-bold text-white text-base border-b border-slate-800 pb-2">Technical Implementation</h4>
+          <ul class="list-disc list-inside space-y-2 text-slate-300">
+            <li><strong class="text-purple-400">Isolated Persistence:</strong> Uses a dedicated Azure SQL database instance strictly bound to the order domain.</li>
+            <li><strong class="text-purple-400">Secrets Ingestion:</strong> Connects to Azure Key Vault on application startup to load database connection parameters.</li>
+            <li><strong class="text-purple-400">Framework Integration:</strong> Leverages `NexOrder.Framework` shared middleware for error handling and standard responses.</li>
+          </ul>
+        </div>
+        <div class="space-y-4">
+          <h4 class="font-bold text-white text-base border-b border-slate-800 pb-2">Infrastructure Interaction</h4>
+          <ul class="list-disc list-inside space-y-2 text-slate-300">
+            <li>Managed Identity authentication for zero-plaintext credentials access to Azure resources.</li>
+            <li>Centralized telemetry reporting via Application Insights for order processing flow analysis.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div id="user-service" class="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-6 lazy-section">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+        <div class="flex items-center gap-4">
+          <span class="p-4 bg-emerald-500/10 text-emerald-400 rounded-2xl"><i class="fas fa-users text-3xl"></i></span>
+          <div>
+            <h3 class="text-2xl font-bold text-white">NexOrder.UserService</h3>
+            <p class="text-sm text-slate-400">User Profile Management & Customer Address Subsystem</p>
+          </div>
+        </div>
+        <a href="https://github.com/mitanshu-patel/NexOrder.UserService" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 px-4 py-2 rounded-xl border border-slate-700 text-sm font-semibold transition self-start md:self-auto flex items-center gap-2">
+          <i class="fab fa-github"></i> Repository
+        </a>
+      </div>
+
+      <div class="bg-slate-950/80 border border-slate-800 p-5 rounded-xl space-y-3">
+        <h4 class="font-bold text-emerald-400 text-sm flex items-center gap-2"><i class="fas fa-tasks"></i> Functional Capabilities</h4>
+        <ul class="grid md:grid-cols-2 gap-2 text-xs text-slate-300 list-disc list-inside">
+          <li>Customer profile management and personal detail updates.</li>
+          <li>Shipping and billing address book management.</li>
+          <li>User contact details resolution during checkout operations.</li>
+          <li>Account preferences and metadata persistence.</li>
+        </ul>
+      </div>
+
+      <div class="bg-slate-950 border border-emerald-900/30 rounded-xl p-4">
+        <div class="text-xs text-slate-400 font-mono mb-2 flex items-center gap-2">
+          <i class="fas fa-project-diagram text-emerald-400"></i> Implementation Flow: UserService
+        </div>
+        <svg viewBox="0 0 700 120" class="w-full h-auto text-xs font-sans">
+          <rect x="10" y="35" width="130" height="50" rx="8" fill="#1e293b" stroke="#10b981" stroke-width="1.5"/>
+          <text x="75" y="65" fill="#ffffff" text-anchor="middle" font-size="11">Profile Request</text>
+          
+          <path d="M 140 60 L 180 60" stroke="#475569" stroke-width="2"/>
+          
+          <rect x="185" y="35" width="150" height="50" rx="8" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="260" y="58" fill="#ffffff" text-anchor="middle" font-size="11" font-weight="bold">Azure Key Vault</text>
+          <text x="260" y="72" fill="#94a3b8" text-anchor="middle" font-size="9">Dynamic Secrets Injection</text>
+          
+          <path d="M 335 60 L 375 60" stroke="#475569" stroke-width="2"/>
+          
+          <rect x="380" y="35" width="140" height="50" rx="8" fill="#1e293b" stroke="#06b6d4" stroke-width="1.5"/>
+          <text x="450" y="58" fill="#ffffff" text-anchor="middle" font-size="11" font-weight="bold">NexOrder.Framework</text>
+          <text x="450" y="72" fill="#94a3b8" text-anchor="middle" font-size="9">Global Exception Middleware</text>
+          
+          <path d="M 520 60 L 560 60" stroke="#475569" stroke-width="2"/>
+          
+          <rect x="565" y="35" width="125" height="50" rx="8" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="627" y="58" fill="#ffffff" text-anchor="middle" font-size="11" font-weight="bold">Azure SQL DB</text>
+          <text x="627" y="72" fill="#94a3b8" text-anchor="middle" font-size="9">User Schema</text>
+        </svg>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8 text-sm">
+        <div class="space-y-4">
+          <h4 class="font-bold text-white text-base border-b border-slate-800 pb-2">Technical Implementation</h4>
+          <ul class="list-disc list-inside space-y-2 text-slate-300">
+            <li><strong class="text-emerald-400">Data Isolation:</strong> Dedicated Azure SQL instance ensuring personal user data identity isolation.</li>
+            <li><strong class="text-emerald-400">Azure Key Vault Integration:</strong> Dynamic secrets loading for storage connection strings.</li>
+            <li><strong class="text-emerald-400">Shared DTO Contracts:</strong> Utilizes unified API response wrappers from `NexOrder.Framework`.</li>
+          </ul>
+        </div>
+        <div class="space-y-4">
+          <h4 class="font-bold text-white text-base border-b border-slate-800 pb-2">Infrastructure Interaction</h4>
+          <ul class="list-disc list-inside space-y-2 text-slate-300">
+            <li>Secure credential management using Azure Key Vault configuration provider.</li>
+            <li>Isolated database deployment maintaining total autonomy from sales and product schemas.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div id="auth-service" class="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-6 lazy-section">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+        <div class="flex items-center gap-4">
+          <span class="p-4 bg-amber-500/10 text-amber-400 rounded-2xl"><i class="fas fa-shield-alt text-3xl"></i></span>
+          <div>
+            <h3 class="text-2xl font-bold text-white">NexOrder.AuthService</h3>
+            <p class="text-sm text-slate-400">Identity Verification & Access Control Subsystem</p>
+          </div>
+        </div>
+        <a href="https://github.com/mitanshu-patel/NexOrder.AuthService" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-amber-400 px-4 py-2 rounded-xl border border-slate-700 text-sm font-semibold transition self-start md:self-auto flex items-center gap-2">
+          <i class="fab fa-github"></i> Repository
+        </a>
+      </div>
+
+      <div class="bg-slate-950/80 border border-slate-800 p-5 rounded-xl space-y-3">
+        <h4 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fas fa-tasks"></i> Functional Capabilities</h4>
+        <ul class="grid md:grid-cols-2 gap-2 text-xs text-slate-300 list-disc list-inside">
+          <li>User registration, login credentials processing, and password verification.</li>
+          <li>JWT access token generation and signing key validation.</li>
+          <li>User identity claims emission and role verification across API endpoints.</li>
+          <li>Authentication state enforcement for secure microservice interactions.</li>
+        </ul>
+      </div>
+
+      <div class="bg-slate-950 border border-amber-900/30 rounded-xl p-4">
+        <div class="text-xs text-slate-400 font-mono mb-2 flex items-center gap-2">
+          <i class="fas fa-project-diagram text-amber-400"></i> Implementation Flow: AuthService
+        </div>
+        <svg viewBox="0 0 700 120" class="w-full h-auto text-xs font-sans">
+          <rect x="10" y="35" width="130" height="50" rx="8" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="75" y="65" fill="#ffffff" text-anchor="middle" font-size="11">Auth Request</text>
+          
+          <path d="M 140 60 L 180 60" stroke="#475569" stroke-width="2"/>
+          
+          <rect x="185" y="35" width="150" height="50" rx="8" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="260" y="58" fill="#ffffff" text-anchor="middle" font-size="11" font-weight="bold">Azure Key Vault</text>
+          <text x="260" y="72" fill="#94a3b8" text-anchor="middle" font-size="9">JWT Keys & Credentials</text>
+          
+          <path d="M 335 60 L 375 60" stroke="#475569" stroke-width="2"/>
+          
+          <rect x="380" y="35" width="140" height="50" rx="8" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="450" y="58" fill="#ffffff" text-anchor="middle" font-size="11" font-weight="bold">JWT Token Engine</text>
+          <text x="450" y="72" fill="#94a3b8" text-anchor="middle" font-size="9">Token Generation</text>
+          
+          <path d="M 520 60 L 560 60" stroke="#475569" stroke-width="2"/>
+          
+          <rect x="565" y="35" width="125" height="50" rx="8" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="627" y="58" fill="#ffffff" text-anchor="middle" font-size="11" font-weight="bold">Azure SQL DB</text>
+          <text x="627" y="72" fill="#94a3b8" text-anchor="middle" font-size="9">Auth Schema</text>
+        </svg>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8 text-sm">
+        <div class="space-y-4">
+          <h4 class="font-bold text-white text-base border-b border-slate-800 pb-2">Technical Implementation</h4>
+          <ul class="list-disc list-inside space-y-2 text-slate-300">
+            <li><strong class="text-amber-400">Dynamic Key Vault Secrets:</strong> Ingests authentication signing keys and database credentials via Azure Key Vault.</li>
+            <li><strong class="text-amber-400">Isolated Storage Context:</strong> Dedicated Azure SQL database isolating authentication secrets and credentials.</li>
+            <li><strong class="text-amber-400">Framework Middleware:</strong> Standardized error handling and API response envelopes.</li>
+          </ul>
+        </div>
+        <div class="space-y-4">
+          <h4 class="font-bold text-white text-base border-b border-slate-800 pb-2">Infrastructure Interaction</h4>
+          <ul class="list-disc list-inside space-y-2 text-slate-300">
+            <li>Azure Key Vault provider dynamically fetching JWT signing keys at runtime.</li>
+            <li>Zero static credentials saved in repository settings files.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <section id="ai-semantic" class="max-w-7xl mx-auto px-6 py-12 border-t border-slate-800/60 lazy-section">
+    <div class="bg-gradient-to-br from-purple-950/40 via-slate-900 to-slate-950 border border-purple-800/40 rounded-2xl p-8 space-y-8">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-800/80 pb-6">
+        <div>
+          <span class="text-xs font-mono bg-purple-950 text-purple-300 border border-purple-800/50 px-3 py-1 rounded-full">AI Pipeline</span>
+          <h2 class="text-3xl font-bold text-white mt-2">Semantic Kernel AI Integration</h2>
+          <p class="text-slate-400 text-sm mt-1">Direct orchestration of Semantic Kernel inside `NexOrder.ProductService`.</p>
+        </div>
+        <div class="p-3 bg-purple-500/10 text-purple-400 rounded-xl self-start md:self-auto">
+          <i class="fas fa-brain text-3xl"></i>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-slate-950/80 border border-slate-800 p-5 rounded-xl space-y-2">
+          <div class="text-purple-400 font-bold flex items-center gap-2"><i class="fas fa-cogs"></i> Kernel Execution Engine</div>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            `NexOrder.ProductService` configures Microsoft Semantic Kernel to parse and execute AI-driven interactions, providing intelligent search capabilities over product catalog items.
+          </p>
+        </div>
+
+        <div class="bg-slate-950/80 border border-slate-800 p-5 rounded-xl space-y-2">
+          <div class="text-purple-400 font-bold flex items-center gap-2"><i class="fas fa-plug"></i> Native Semantic Extensions</div>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Uses Semantic Kernel plugins and skill configurations to bind domain logic directly to AI processing without requiring external search engine pipelines.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="framework" class="max-w-7xl mx-auto px-6 py-12 border-t border-slate-800/60 lazy-section">
+    <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-8">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+        <div>
+          <span class="text-xs font-mono bg-cyan-950 text-cyan-300 border border-cyan-800/50 px-3 py-1 rounded-full">Shared Class Library</span>
+          <h2 class="text-3xl font-bold text-white mt-2">NexOrder.Framework</h2>
+          <p class="text-slate-400 text-sm mt-1">Shared core class library providing reusable infrastructure components across all NexOrder microservices.</p>
+        </div>
+        <a href="https://github.com/mitanshu-patel/NexOrder.Framework" target="_blank" class="bg-cyan-600 hover:bg-cyan-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition self-start md:self-auto flex items-center gap-2">
+          <i class="fab fa-github"></i> Repository
+        </a>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="bg-slate-950/60 border border-slate-800/80 p-5 rounded-xl">
+          <i class="fas fa-exclamation-triangle text-cyan-400 text-xl mb-3"></i>
+          <h4 class="font-bold text-white mb-2">Global Exception Middleware</h4>
+          <p class="text-slate-400 text-xs leading-relaxed">Centralized middleware intercepting unhandled runtime exceptions across all microservices, returning structured error payloads.</p>
+        </div>
+
+        <div class="bg-slate-950/60 border border-slate-800/80 p-5 rounded-xl">
+          <i class="fas fa-code text-cyan-400 text-xl mb-3"></i>
+          <h4 class="font-bold text-white mb-2">Standardized Response Model</h4>
+          <p class="text-slate-400 text-xs leading-relaxed">Defines a unified API response contract (`Success`, `Data`, `Errors`, `StatusCode`) utilized across every service REST endpoint.</p>
+        </div>
+
+        <div class="bg-slate-950/60 border border-slate-800/80 p-5 rounded-xl">
+          <i class="fas fa-plug text-cyan-400 text-xl mb-3"></i>
+          <h4 class="font-bold text-white mb-2">Service Extensions</h4>
+          <p class="text-slate-400 text-xs leading-relaxed">Provides helper extension methods for dependency injection registration, caching initialization, and framework configuration setups.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="caching-security" class="max-w-7xl mx-auto px-6 py-12 border-t border-slate-800/60 lazy-section">
+    <h2 class="text-2xl font-bold text-slate-100 mb-8 border-l-4 border-amber-500 pl-4">Azure Infrastructure & Resource Management</h2>
+
+    <div class="grid md:grid-cols-3 gap-6 mb-8">
+      
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+        <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl w-fit">
+          <i class="fas fa-key text-2xl"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white">Azure Key Vault</h3>
+        <p class="text-slate-400 text-xs leading-relaxed">
+          Centralized secret management. Injects sensitive database connection strings, JWT signing keys, and external service credentials directly into standard .NET <code class="text-amber-300">appsettings</code> during host initialization.
+        </p>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+        <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl w-fit">
+          <i class="fas fa-bolt text-2xl"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white">Azure Cache for Redis</h3>
+        <p class="text-slate-400 text-xs leading-relaxed">
+          Managed distributed memory store backing the .NET <code class="text-emerald-300">IDistributedCache</code> interface and <code class="text-emerald-300">FusionCache</code> in <code class="text-slate-200">ProductService</code> for sub-millisecond retrieval of catalog entity payloads.
+        </p>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+        <div class="p-3 bg-blue-500/10 text-blue-400 rounded-xl w-fit">
+          <i class="fas fa-database text-2xl"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white">Azure SQL Databases</h3>
+        <p class="text-slate-400 text-xs leading-relaxed">
+          Fully managed relational database instances providing physical data boundary isolation per microservice context (<code class="text-slate-200">Product</code>, <code class="text-slate-200">Order</code>, <code class="text-slate-200">User</code>, and <code class="text-slate-200">Auth</code>).
+        </p>
+      </div>
+
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-8">
+      
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+        <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+          <i class="fas fa-server text-cyan-400"></i> Azure App Service / Container Apps
+        </h3>
+        <p class="text-slate-400 text-sm mb-4 leading-relaxed">
+          Hosts containerized .NET Web APIs with independent scaling configurations across microservice instances.
+        </p>
+        <ul class="space-y-3 text-sm text-slate-300">
+          <li class="flex items-start gap-2">
+            <i class="fas fa-check-circle text-cyan-400 mt-1"></i>
+            <span><strong>Independent Scaling:</strong> Scales microservices independently based on compute and request traffic demands.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <i class="fas fa-check-
