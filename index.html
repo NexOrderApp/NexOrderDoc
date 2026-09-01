@@ -586,4 +586,42 @@
             <span><strong>Independent Scaling:</strong> Scales microservices independently based on compute and request traffic demands.</span>
           </li>
           <li class="flex items-start gap-2">
-            <i class="fas fa-check-
+            <i class="fas fa-check-circle text-cyan-400 mt-1"></i>
+            <span><strong>Managed Identity Integration:</strong> Authenticates seamlessly with Azure Key Vault using System-Assigned Managed Identity, eliminating embedded secret keys.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+        <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+          <i class="fas fa-chart-line text-purple-400"></i> Azure Application Insights & Monitor
+        </h3>
+        <p class="text-slate-400 text-sm mb-4 leading-relaxed">
+          Provides distributed tracing, telemetry monitoring, and centralized log aggregation across all service containers.
+        </p>
+        <ul class="space-y-3 text-sm text-slate-300">
+          <li class="flex items-start gap-2">
+            <i class="fas fa-shield-alt text-purple-400 mt-1"></i>
+            <span><strong>Distributed Tracing:</strong> Tracks request propagation across boundaries using standard correlation IDs.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <i class="fas fa-shield-alt text-purple-400 mt-1"></i>
+            <span><strong>Centralized Telemetry:</strong> Aggregates unhandled exceptions caught by <code class="text-slate-200">NexOrder.Framework</code> global middleware.</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="border-t border-slate-800 py-10 mt-12 bg-slate-950">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between text-sm text-slate-500">
+      <p>&copy; NexOrder Architecture Documentation. Hosted on GitHub Pages.</p>
+      <div class="flex mt-4 md:mt-0" style="color: #d9d2d2;">
+        <b>Contributor:</b>&nbsp;<a href="https://github.com/mitanshu-patel" target="_blank" class="hover:text-slate-300">Mitanshu Patel</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
